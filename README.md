@@ -1,6 +1,6 @@
-## 2. 環境構築手順
+# 環境構築手順
 
-### 2.1. Laravelプロジェクトの作成 (Laravel 10.x)
+## 1.1. Laravelプロジェクトの作成 (Laravel 10.x)
 
 以下のDockerコマンドを実行して、Laravel 10.xを明示的に指定してプロジェクトを作成します。
 
@@ -14,7 +14,7 @@ docker run --rm \
     composer create-project laravel/laravel:^10.0 book-review-app
 ```
 
-### 2.2. Laravel Sailのインストール
+## 1.2. Laravel Sailのインストール
 
 プロジェクト作成後、`book-review-app` ディレクトリに移動し、Laravel Sailをインストールします。
 
@@ -41,7 +41,7 @@ docker run --rm \
     php artisan sail:install --with=mysql
 ```
 
-### 2.3. フロントエンドのセットアップ (Vite & Tailwind CSS)
+## 1.3. フロントエンドのセットアップ (Vite & Tailwind CSS)
 
 1.  **NPM依存パッケージのインストール**
     ```bash
@@ -89,7 +89,7 @@ docker run --rm \
     sail npm run dev
     ```
 
-### 2.4. .env ファイルとphpMyAdminの設定
+## 1.4. .env ファイルとphpMyAdminの設定
 
 1.  **.env ファイルの確認**
     `.env` ファイルを開き、データベース接続情報が以下と一致していることを確認します。
@@ -119,7 +119,7 @@ docker run --rm \
                 - mysql
     ```
 
-### 2.5. Sailの起動とエイリアス設定
+## 1.5. Sailの起動とエイリアス設定
 
 1.  **Sailの起動**
     ```bash
@@ -140,4 +140,3 @@ docker run --rm \
     ```bash
     sail artisan key:generate
     ```
-
