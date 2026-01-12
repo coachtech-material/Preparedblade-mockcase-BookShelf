@@ -141,9 +141,9 @@ docker run --rm \
     sail artisan key:generate
     ```
 
-:::note warn
-下記のエラーが出た場合は`sail composer install`を実行して、依存関係を再整理してください。
-```
-include(/var/www/html/vendor/composer/../../app/View/Components/AppLayout.php): Failed to open stream: No such file or directory
-```
-:::
+> [!エラーが出た場合]
+> 下記のエラーが出た場合は`sail composer install`を実行して、依存関係を再整理してください。
+> ```
+> include(/var/www/html/vendor/composer/../../app/View/Components/AppLayout.php): Failed to open stream: No such file or directory
+> ```
+
