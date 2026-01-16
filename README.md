@@ -1,10 +1,13 @@
 # 環境構築手順
 
-## 1.1. Laravelプロジェクトの作成 (Laravel 10.x)
+### 1.1. Laravelプロジェクトの作成 (Laravel 10.x)
+
+**注意:** `curl -s "https://laravel.build/..."` は最新版のLaravelをインストールするため、今回は使用しません。
 
 以下のDockerコマンドを実行して、Laravel 10.xを明示的に指定してプロジェクトを作成します。
 
 ```bash
+# Laravel 10.x を指定してプロジェクトを作成
 docker run --rm \
     -u "$(id -u):$(id -g)" \
     -v "$(pwd):/var/www/html" \
@@ -14,7 +17,7 @@ docker run --rm \
     composer create-project laravel/laravel:^10.0 book-review-app
 ```
 
-## 1.2. Laravel Sailのインストール
+### 1.2. Laravel Sailのインストール
 
 プロジェクト作成後、`book-review-app` ディレクトリに移動し、Laravel Sailをインストールします。
 
@@ -41,109 +44,131 @@ docker run --rm \
     php artisan sail:install --with=mysql
 ```
 
-## 1.3. フロントエンドのセットアップ (Vite & Tailwind CSS)
+### 1.3. .env ファイルの設定
 
-1.  **NPM依存パッケージのインストール**
-    ```bash
-    sail npm install
-    ```
+`.env` ファイルを開き、データベース接続情報が以下と一致していることを確認します。
 
-2.  **Tailwind CSSのインストール**
-    ```bash
-    sail npm install -D tailwindcss@^3.4.0 postcss autoprefixer
-    ```
+```dotenv
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=sail
+DB_PASSWORD=password
+```
 
-3.  **設定ファイルの生成**
-    ```bash
-    sail npx tailwindcss init -p
-    ```
+**重要:** `DB_HOST` は `localhost` や `127.0.0.1` ではなく、Dockerコンテナ名である `mysql` を指定します。
 
-4.  **Tailwind CSSのテンプレートパス設定**
-    `tailwind.config.js` を開き、`content`プロパティを以下のように設定します。
-    ```javascript
-    /** @type {import('tailwindcss').Config} */
-    export default {
-      content: [
-        "./resources/**/*.blade.php",
-        "./resources/**/*.js",
-        "./resources/**/*.vue",
-      ],
-      theme: {
-        extend: {},
-      },
-      plugins: [],
-    }
-    ```
+### 1.4. フロントエンドのセットアップ (Vite & Tailwind CSS)
 
-5.  **CSSファイルにTailwindディレクティブを追加**
-    `resources/css/app.css` の中身を以下の3行に置き換えます。
-    ```css
-    @tailwind base;
-    @tailwind components;
-    @tailwind utilities;
-    ```
+本プロジェクトでは、フロントエンドのスタイリングにTailwind CSSを使用します。以下の手順でセットアップを行ってください。
 
-6.  **Vite開発サーバーの起動**
-    新しいターミナルを開いて実行します。このコマンドは開発中、常に実行したままにしてください。
-    ```bash
-    sail npm run dev
-    ```
+#### 1. NPM依存パッケージのインストール
 
-## 1.4. .env ファイルとphpMyAdminの設定
+> **重要:** `sail npm install` を実行する前に、必ずSailコンテナが起動していることを確認してください。
+> コンテナが起動していない場合は、先に `./vendor/bin/sail up -d` を実行してください。
 
-1.  **.env ファイルの確認**
-    `.env` ファイルを開き、データベース接続情報が以下と一致していることを確認します。
-    ```ini
-    DB_CONNECTION=mysql
-    DB_HOST=mysql
-    DB_PORT=3306
-    DB_DATABASE=laravel
-    DB_USERNAME=sail
-    DB_PASSWORD=password
-    ```
+```bash
+sail npm install
+```
 
-2.  **phpMyAdminの追加**
-    `compose.yaml` を開き、`mysql` サービスの後に以下の設定を追加します。
-    ```yaml
-        phpmyadmin:
-            image: 'phpmyadmin:latest'
-            ports:
-                - '${FORWARD_PHPMYADMIN_PORT:-8080}:80'
-            environment:
-                PMA_HOST: mysql
-                PMA_USER: '${DB_USERNAME}'
-                PMA_PASSWORD: '${DB_PASSWORD}'
-            networks:
-                - sail
-            depends_on:
-                - mysql
-    ```
-
-## 1.5. Sailの起動とエイリアス設定
-
-1.  **Sailの起動**
-    ```bash
-    ./vendor/bin/sail up -d
-    ```
-
-2.  **エイリアス設定**
-    ```bash
-    echo "alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'" >> ~/.zshrc
-    # または bash の場合
-    # echo "alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'" >> ~/.bashrc
-    
-    # シェルを再起動
-    exec $SHELL
-    ```
-
-3.  **アプリケーションキーの生成**
-    ```bash
-    sail artisan key:generate
-    ```
-
-> [!WARNING]
-> 下記のエラーが出た場合は`sail composer install`を実行して、依存関係を再整理してください。
+> **トラブルシューティング:**
+> 以下のエラーが発生した場合:
 > ```
-> include(/var/www/html/vendor/composer/../../app/View/Components/AppLayout.php): Failed to open stream: No such file or directory
+> OCI runtime exec failed: exec failed: unable to start container process: current working directory is outside of container mount namespace root
 > ```
+> 
+> **原因:** Sailコンテナが起動していません。
+> 
+> **解決方法:**
+> 1. Sailコンテナを起動: `./vendor/bin/sail up -d`
+> 2. 再度実行: `sail npm install`
 
+#### 2. Tailwind CSSのインストール
+
+```bash
+sail npm install -D tailwindcss@^3.4.0 postcss autoprefixer
+```
+
+#### 3. 設定ファイルの生成
+
+```bash
+sail npx tailwindcss init -p
+```
+
+#### 4. Tailwind CSSのテンプレートパス設定
+
+`tailwind.config.js` を開き、TailwindがCSSを適用するテンプレートファイル（Bladeファイルなど）のパスを指定します。
+
+**`tailwind.config.js`**
+```javascript
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./resources/**/*.blade.php",
+    "./resources/**/*.js",
+    "./resources/**/*.vue",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+```
+
+#### 5. 本プロジェクトのresourseファイルをPreparedblade-mockcase-BookShelf リポジトリのresourseファイルをと入れ替え
+
+openコマンドを利用してcloneしてきたファイルをGUIで移動する、もしくはmvコマンドを活用して入れ替えるのが最も早い方法です。
+
+#### 6. Vite開発サーバーの起動
+
+```bash
+# 新しいターミナルを開いて実行
+sail npm run dev
+```
+
+> **注意:** `sail npm run dev` は実行したままにしておく必要があります。開発中は常にこのコマンドを実行した状態にしておいてください。
+
+### 1.5. phpMyAdminの追加
+
+`compose.yaml` を開き、`mysql` サービスの後に以下の設定を追加してください。
+
+**`compose.yaml` に追加する内容:**
+
+```yaml
+    phpmyadmin:
+        image: 'phpmyadmin:latest'
+        ports:
+            - '${FORWARD_PHPMYADMIN_PORT:-8080}:80'
+        environment:
+            PMA_HOST: mysql
+            PMA_USER: '${DB_USERNAME}'
+            PMA_PASSWORD: '${DB_PASSWORD}'
+        networks:
+            - sail
+        depends_on:
+            - mysql
+```
+
+### 1.6. Sailの起動とエイリアス設定
+
+```bash
+# Sailをバックグラウンドで起動
+./vendor/bin/sail up -d
+```
+
+```bash
+# エイリアスを設定して 'sail' だけでコマンドを実行できるようにする
+echo "alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'" >> ~/.zshrc
+# または bash の場合
+# echo "alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'" >> ~/.bashrc
+
+# シェルを再起動するか、新しいターミナルを開いてエイリアスを有効にする
+exec $SHELL
+```
+
+### 1.7. アプリケーションキーの生成
+
+```bash
+sail artisan key:generate
+```
